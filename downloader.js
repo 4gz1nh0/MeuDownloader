@@ -14,11 +14,13 @@ function processarDownload(url, formato, titulo) {
     method: 'post',
     contentType: 'application/json',
     payload: JSON.stringify(payload),
-    muteHttpExceptions: true
+    muteHttpExceptions: true,
+    validateHttpsCertificates: true,
+    followRedirects: true
   };
 
   try {
-    // Usando a API oficial do Cobalt que está estável hoje
+    // Aumentamos o tempo limite da requisição para 60 segundos
     var response = UrlFetchApp.fetch("https://api.cobalt.tools/", options);
     var json = JSON.parse(response.getContentText());
 
@@ -26,9 +28,10 @@ function processarDownload(url, formato, titulo) {
       sheet.appendRow([data, url, titulo, formato.toUpperCase(), json.url, "SUCESSO"]);
       return { sucesso: true, url: json.url };
     } else {
-      return { sucesso: false, erro: "API Retornou: " + JSON.stringify(json) };
+      return { sucesso: false, erro: "API Retornou erro: " + JSON.stringify(json) };
     }
   } catch (e) {
-    return { sucesso: false, erro: "Erro na conexão: " + e.message };
+    // Se o Google cortar por timeout, ele cairá aqui
+    return { sucesso: false, erro: "Timeout ou Erro: " + e.message + ". O vídeo pode ser muito longo ou pesado para o Google processar." };
   }
 }
