@@ -1,11 +1,7 @@
-/**
- * Lógica centralizada no GitHub
- */
 function processarDownload(url, formato, titulo) {
   var data = new Date();
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   
-  // Payload para o yt-dlp via API Cobalt (estável)
   var payload = {
     url: url,
     vQuality: formato !== "mp3" ? formato : "720",
@@ -22,6 +18,7 @@ function processarDownload(url, formato, titulo) {
   };
 
   try {
+    // Usando a API oficial do Cobalt que está estável hoje
     var response = UrlFetchApp.fetch("https://api.cobalt.tools/", options);
     var json = JSON.parse(response.getContentText());
 
@@ -29,9 +26,9 @@ function processarDownload(url, formato, titulo) {
       sheet.appendRow([data, url, titulo, formato.toUpperCase(), json.url, "SUCESSO"]);
       return { sucesso: true, url: json.url };
     } else {
-      return { sucesso: false, erro: "Erro na API: " + JSON.stringify(json) };
+      return { sucesso: false, erro: "API Retornou: " + JSON.stringify(json) };
     }
   } catch (e) {
-    return { sucesso: false, erro: "Exceção: " + e.message };
+    return { sucesso: false, erro: "Erro na conexão: " + e.message };
   }
 }
