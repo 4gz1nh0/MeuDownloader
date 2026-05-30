@@ -1,7 +1,6 @@
+// Este arquivo lida com a busca e processamento
 function processarDownload(url, formato, titulo) {
-  var data = new Date();
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  
   var payload = {
     url: url,
     vQuality: formato !== "mp3" ? formato : "720",
@@ -14,24 +13,23 @@ function processarDownload(url, formato, titulo) {
     method: 'post',
     contentType: 'application/json',
     payload: JSON.stringify(payload),
-    muteHttpExceptions: true,
-    validateHttpsCertificates: true,
-    followRedirects: true
+    muteHttpExceptions: true
   };
 
   try {
-    // Aumentamos o tempo limite da requisição para 60 segundos
     var response = UrlFetchApp.fetch("https://api.cobalt.tools/", options);
     var json = JSON.parse(response.getContentText());
-
     if (json.url) {
-      sheet.appendRow([data, url, titulo, formato.toUpperCase(), json.url, "SUCESSO"]);
+      sheet.appendRow([new Date(), url, titulo, formato.toUpperCase(), json.url, "SUCESSO"]);
       return { sucesso: true, url: json.url };
-    } else {
-      return { sucesso: false, erro: "API Retornou erro: " + JSON.stringify(json) };
     }
+    return { sucesso: false, erro: "API retornou: " + JSON.stringify(json) };
   } catch (e) {
-    // Se o Google cortar por timeout, ele cairá aqui
-    return { sucesso: false, erro: "Timeout ou Erro: " + e.message + ". O vídeo pode ser muito longo ou pesado para o Google processar." };
+    return { sucesso: false, erro: e.message };
   }
+}
+
+function buscarMetadados(url) {
+  var res = UrlFetchApp.fetch("https://noembed.com/embed?url=" + encodeURIComponent(url), {muteHttpExceptions: true});
+  return JSON.parse(res.getContentText());
 }
