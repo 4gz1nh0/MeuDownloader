@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { margin: 0; background-color: #0f172a; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; }
+    .wrapper { width: 100%; max-width: 450px; padding: 25px; box-sizing: border-box; }
+    h1 { color: #deff9a; text-align: center; }
+    input, select, button { width: 100%; padding: 16px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 16px; }
+    button { background-color: #deff9a; color: #000; font-weight: bold; cursor: pointer; }
+    #step2 { display: none; }
+    .preview { text-align: center; margin-bottom: 20px; }
+    .preview img { width: 100%; border-radius: 8px; }
+    #status { text-align: center; color: #deff9a; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Downloader</h1>
+    
+    <div id="step1">
+      <input type="text" id="videoUrl" placeholder="Cole o link do YouTube...">
+      <button onclick="verificar()">Opções de Download</button>
+    </div>
+
+    <div id="step2">
+      <div class="preview">
+        <img id="thumb" src="">
+        <h3 id="titulo"></h3>
+      </div>
+      <select id="formato">
+        <option value="1080">1080p</option>
+        <option value="720" selected>720p</option>
+        <option value="mp3">Áudio MP3</option>
+      </select>
+      <button id="btnBaixar" onclick="baixar()">BAIXAR</button>
+      <button onclick="location.reload()" style="background:none; border:1px solid #475569; color:white;">VOLTAR</button>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <script>
+    function verificar() {
+      var url = document.getElementById('videoUrl').value;
+      document.getElementById('status').innerText = "Processando...";
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if(res.sucesso) {
+            document.getElementById('thumb').src = res.thumb;
+            document.getElementById('titulo').innerText = res.titulo;
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            document.getElementById('status').innerText = "";
+          } else {
+            alert(res.erro);
+          }
+        })
+        .verificarVideo(url);
+    }
+
+    function baixar() {
+      var btn = document.getElementById('btnBaixar');
+      btn.innerText = "Extraindo...";
+      var url = document.getElementById('videoUrl').value;
+      var fmt = document.getElementById('formato').value;
+      var tit = document.getElementById('titulo').innerText;
+      
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if(res.sucesso) {
+            window.top.location.href = res.url;
+            btn.innerText = "BAIXAR";
+          } else {
+            document.getElementById('status').innerText = "Erro: " + res.erro;
+          }
+        })
+        .processarVideo(url, fmt, tit);
+    }
+  </script>
+</body>
+</html>
